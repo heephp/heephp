@@ -21,7 +21,7 @@ php7.3+ mvc mysql sqlite 数据缓存可使用 文件、redis、memcache
 3.设置运行目录 \public \
 4. 修改配置文件 \app\config.php\
 5.添加控制器 视图文件\
-6.运行程序\
+6.运行程序
 
 #### 特别鸣谢
 
