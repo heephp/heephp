@@ -10,7 +10,6 @@ return [
     'success_page'=>'message/sysSuccess.php',
     'error_page'=>'message/sysError.php',
     'validata_code_session'=>'_validata_code_session_',//验证码的Session字段
-    'customer_config_name'=>'heeframework_config',//用户自定义配置的名称
     'db'=>[
         'diver'=>'mysqli',
         'db_host' => 'localhost',
