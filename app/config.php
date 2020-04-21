@@ -21,7 +21,6 @@ return [
         'charset'=>'utf8',
         'timeformat'=>'Y-m-d H:i:s',
         'dateformat'=>'Y-m-d',
-
     ],
     'pagination'=>[
       'class'=>'pagination',
