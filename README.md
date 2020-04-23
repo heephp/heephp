@@ -32,5 +32,5 @@ php7.3+ mvc mysql sqlite 数据缓存可使用 文件、redis、memcache
 #### 相关链接
 
 1.  [heephp网站](http://www.heephp.com)
-2.  [文件教程](http://doc.heephp.com)
+2.  [文件教程](https://heephp.github.io/heephp)
 3.  [常见问题](http://www.heephp.com)
