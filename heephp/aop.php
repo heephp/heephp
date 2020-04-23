@@ -27,15 +27,9 @@ class aop{
         //注册事件(暂时无用)
         $this->register($name);
 
-        $aopfile='';
-        $aopdir ='';
-        //if(APPS){
             $aopfile='./../app/aop.php';
             $aopdir = './../app/aop/';
-        /*}else{
-            $aopfile='./../app/'.APP.'/aop.php';
-            $aopdir = './../app/'.APP.'/aop/';
-        }*/
+
         if(!is_file($aopfile)) {
             return false;
         }

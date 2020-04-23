@@ -400,7 +400,7 @@ function checkvcode($vcodename = 'vcode'){
 *@$textFont => 文字大小
 *@$textColor => 文字顔色
 */
-function imageWaterMark($originalImage, $waterPos = 5, $waterImage = '', $waterText = '', $textFont = 5, $textColor = '#FFFFFF',$fontFile=ROOT.'/public/assets/fonts/arial.ttf')
+function imageWaterMark($originalImage, $waterPos = 5, $waterImage = '', $waterText = '', $textFont = 5, $textColor = '#FFFFFF',$fontFile='arial.ttf')
 {
     $isWaterImage = FALSE;
 
@@ -450,6 +450,7 @@ function imageWaterMark($originalImage, $waterPos = 5, $waterImage = '', $waterT
         $h = $waterImageHeight;
         $label = "图片的";
     } else {
+        $fontFile=ROOT.'/public/assets/fonts/'.$fontFile;
         $temp = imagettfbbox(ceil($textFont * 2.5), 0, $fontFile, $waterText);
         $w = $temp[2] - $temp[6];
         $h = $temp[3] - $temp[7];
@@ -548,9 +549,17 @@ function imageWaterMark($originalImage, $waterPos = 5, $waterImage = '', $waterT
  * 发送邮件
  *
  * */
-function sendmail($server,$username,$password,$form,$to,$subject,$body,$attachment='')
+function sendmail($to,$subject,$body,$attachment='',$conf=[])
 {
-    $mail = new sendmail();
+    if(empty($conf)){
+        $conf = config('mail');
+    }
+    $server = $conf['server'];
+    $username = $conf['username'];
+    $password = $conf['password'];
+    $form = $conf['form'];
+
+    $mail = new \heephp\sendmail();
     $mail->setServer($server, $username, $password);
     $mail->setFrom($form);
     $mail->setReceiver($to);
