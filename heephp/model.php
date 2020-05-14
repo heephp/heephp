@@ -54,7 +54,7 @@ class model extends orm {
         return $this->db->insert($this->table,$data);
     }
 
-    public function delete($id='',$soft=true)
+    public function delete($id='')
     {
 
         if (!empty($id))
@@ -67,10 +67,8 @@ class model extends orm {
         }
 
         if ($this->softdel) {
-            if ($soft) {
                 $data[$this->field_deletetime] = time();
                 return $this->db->update($this->table, $data, $where);
-            }
         }
 
         return $this->db->delete($this->table, $where);
