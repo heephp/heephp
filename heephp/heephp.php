@@ -1,8 +1,8 @@
 <?php
 namespace heephp;
 
-define('SOFTNAME','HeePHP');
-define('VERSION','1.1');
+define('SOFTNAME','heephp');
+define('VERSION','2.0');
 define('ROOT',dirname($_SERVER["DOCUMENT_ROOT"]));
 
 include_once 'config.php';
@@ -42,7 +42,7 @@ class heephp
         $app = '';
         $controller = '';
         $method = '';
-        $parms = array();
+        $parms = [];
         urlpaser($app, $controller, $method, $parms);
 
         define('APP', $app);

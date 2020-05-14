@@ -1,8 +1,9 @@
 <?php
 namespace heephp;
+use heephp\orm\orm;
 use mysql_xdevapi\Exception;
 
-class model{
+class model extends orm {
 
     protected $autotimespan=false;
     protected $softdel=false;
@@ -18,7 +19,7 @@ class model{
     protected $update_message_validata="";
 
 
-    protected $db;
+    //protected $db;
     protected $table_prefix;
     protected $table;
     protected $key='';
@@ -27,7 +28,7 @@ class model{
 
     public function __construct($tablname)
     {
-        $this->db=db();
+        parent::__construct();
 
         //获取表前缀
         $this->table_prefix=config('db.table_prefix');
@@ -37,17 +38,9 @@ class model{
         //获取主键字段
         $this->key=empty($this->key)?$this->db->getKeyFiled($this->table):$this->key;
 
-
-
         aop('model_init');
     }
-/**
- *
- * 设置表名
- */
-    /*public function table($name){
-        $this->table = $name;
-    }*/
+
 
     public function insert($data){
         if(!$this->validata($data,'insert')){
@@ -61,167 +54,131 @@ class model{
         return $this->db->insert($this->table,$data);
     }
 
-    public function delete($id,$soft=true)
+    public function delete($id='',$soft=true)
     {
 
-        if ($this->softdel) {
-
-            if ($soft) {
-                if ($this->softdel) {
-                    $data[$this->field_deletetime] = time();
-                    return $this->db->update($this->table, $data, "`$this->key`='$id'");
-                } else {
-                    throw new sysExcption('没有开启软删除');
-                }
-            }
-
+        if (!empty($id))
+            $where = '`' . $this->key . '` = \'' . $id . '\'';
+        else if(!empty($this->where)) {
+            $where = $this->where;
+            $this->where = '';
+        }else {
+            $where='1=1';
         }
 
-        return $this->db->delete($this->table, "`$this->key`='$id'");
-    }
-
-    public function deleteByWhere($where){
+        if ($this->softdel) {
+            if ($soft) {
+                $data[$this->field_deletetime] = time();
+                return $this->db->update($this->table, $data, $where);
+            }
+        }
 
         return $this->db->delete($this->table, $where);
-
     }
 
-    public function update($data,$where=''){
-        if(!$this->validata($data,'update')){
+
+    public function update($data)
+    {
+        if (!$this->validata($data, 'update')) {
             validata::showerror();
             return false;
         }
-        if(empty($where)){
-            $where='`'.$this->key.'` = \''.$data[$this->key].'\'';
+        if (empty($this->where))
+            $where = '`' . $this->key . '` = \'' . $data[$this->key] . '\'';
+        else {
+            $where = $this->where;
         }
+
+        if ($this->autotimespan)
+            $data[$this->field_updatetime] = time();
+
         $this->set_autofield($data);
-        return $this->db->update($this->table,$data,$where);
+        return $this->db->update($this->table, $data, $where);
     }
 
-    public function select($where='1=1',$order='',$fields='*',$onlySoftDel=false,$pname='page',$page=0){
-        //路由中注册pagetag
-        //echo $pname;
-        route::reg_pagetag($pname);
-        $where=$this->softdelwhere($where,$onlySoftDel);
+    public function select()
+    {
+        $re = $this->all();
+        $this->get_autofield($re);
 
-        if($page==0){
-            $re = $this->db->select($this->table,$where,$fields,$order);
-            $this->get_autofield($re);
-        }else{
-            //获取某一页的内容
-            $pagesize=config('pagesize');
-            $re = $this->db->select($this->table,$where,$fields,$order,($page-1)*$pagesize,$pagesize);
-            $this->get_autofield($re);
-        }
-
-        $this->data=$re;
-        $this->pager=null;
+        $this->data = $re;
+        $this->pager = null;
         return $re;
 
     }
 
     /** 分页获取数据
-     * @param $table
-     * @param $where
-     * @param string $order
-     * @param string $fields
-     * @param string $pname 分页的url参数  格式:page_1
-     * @return array 仅返回获取到的数据   分页使用$this->>pager获取
+     * @return array 仅返回获取到的数据   分页使用$this->pager获取
      */
-    public function page($where='1=1',$order='',$fields='*',$onlySoftDel=false,$pname='page'){
+    public function page(){
 
-        if(empty($where))$where='1=1';
-        $where=$this->softdelwhere($where,$onlySoftDel);
+        $where=$this->where;
+        $order=$this->order;
+        $fields=empty($this->fields)?' * ':$this->fields;
+        $pname=$this->pageparm;
+
+        if(empty($where))
+            $where='1=1';
+        else
+            $where=$this->softdelwhere();
 
         $pagesize=config('pagesize')??20;
-
-        //$url = request('ser.REQUEST_URI');
-        $url='/'.APP.'/'.CONTROLLER.'/'.METHOD.'/'.implode('/',PARMS);
-
-        //下划线分隔取出page数值
-        preg_match('/'.$pname.'_\d+/',$url,$match);
-        $pinfo=explode('_',$match[0]);
-        //如果存在多个下划线分隔符
-        if(count($pinfo)===2) $page=$pinfo[1];
-        else $page=$pinfo[count($pinfo)-1];
-
-        if(intval($page)<1)
-            $page=1;
-
-        //如果URL没有分页参数，那么加上
-        if(!strstr($url,$pname.'_')){
-            $url.=(substr($url,-1)=='/'?'':'/').$pname.'_'.$page;
-            //echo $url;
+        $page=1;
+        $parms=[];
+        foreach (PARMS as $item) {
+            if(($item&($pname.'_'))==($pname.'_')){
+                $item = explode('_',$item);
+                $page = $item[1];
+            }else
+                $parms[]=$item;
         }
 
-        //$page=request('g.'.$pname);
-        $re=[];//print_r($where);
-        $count=$this->db->getRow("select count(*) c from `$this->table_prefix$this->table` where $where");
+        $re=[];
+        $count=$this->count('*','c')->value();
         $count=$count['c'];
         $re['count'] = $count;
         $re['pagesize']=$pagesize;
         $re['page']=$page;
         $re['pagecount']=ceil($count / $pagesize);
 
-        $data=$this->db->select($this->table,$where,$fields,$order,$skip=$page==1?0:(($page-1)*$pagesize),$limit=$pagesize);
+        $this->where($where);
+        $this->order($order);
+        $this->field($fields);
+        $this->limit($page==1?0:(($page-1)*$pagesize).','.$pagesize);
+        $data=parent::select();
         $this->get_autofield($data);
 
-        //构造url
-        $url = strpos($url,$pname.'_')>0?$url:($url.'/'.$pname.'_0');
-        $firstpage=preg_replace('/'.$pname.'_\d+/',$pname.'_1',$url);
-        $prvpage=preg_replace('/'.$pname.'_\d+/',$pname.'_'.(intval($page)-1),$url);
-        $nextpage=preg_replace('/'.$pname.'_\d+/',$pname.'_'.(intval($page)+1),$url);
-        $endpage=preg_replace('/'.$pname.'_\d+/',$pname.'_'.$re['pagecount'],$url);
-
-        //echo $prvpage;
-
-        $pagerclass=' class="'.config('pagination.class').'"';
-        $pageritemclass=' class="'.config('pagination.item_class').'"';
-        $pagerlinkclass=' class="'.config('pagination.link_class').'"';
-        $pagercurrtclass=' class="'.config('pagination.item_class').' '.config('pagination.currt_class').'"';
-
-
-        $pager="<ul$pagerclass>";
-        $pager.=($page!=1)?"<li$pageritemclass><a$pagerlinkclass href=\"$firstpage\">首页</a></li>":'';
-        $pager.=($page!=1)?"<li$pageritemclass><a$pagerlinkclass href=\"$prvpage\">上一页</a></li>":'';
-        $pager.=($page>1&&$re['pagecount']>1)?"<li$pageritemclass><a$pagerlinkclass href=\"$prvpage\">".($page-1).'</a></li>':'';
-        $pager.="<li$pagercurrtclass><a$pagerlinkclass href=\"#\">$page</a></li>";
-        $pager.=$re['pagecount']>$page?"<li$pageritemclass><a$pagerlinkclass href=\"$nextpage\">".($page+1).'</a></li>':'';
-        $pager.=$re['pagecount']>$page&&$page<$re['pagecount']?"<li$pageritemclass><a$pagerlinkclass href=\"$nextpage\">下一页</a></li>":'';
-        $pager.=$re['pagecount']>$page?"<li$pageritemclass><a$pagerlinkclass href=\"$endpage\">尾页</a></li>":'';
-        $pager.='第'.$page.'/'.$re['pagecount'].'页';
-        $pager.='</ul>';
-
-        $re['show']=$pager;
+        $re['show']=(new \heephp\bulider\pager())->bulider($page,$re['pagecount'],$parms,$pname);
 
         $this->pager = $re;
         $this->data = $data;
         return $data;
 
-        //return $this->select($where,$order,$fields,-1,$onlySoftDel,$pname);
     }
 
     /**
      * 根据软删除获取sql 条件 where
      * @onlySoftDel true只查找已被软删除的  False只查找未被软删除的
      */
-    private function softdelwhere($where,$onlySoftDel){
+    public function softdelwhere(){
+        $where=$this->where;
+        $alias=$this->alias;
 
         if($this->softdel){
-
-            if($onlySoftDel){
+            $tbname = '`'.(empty($alias)?$this->table_prefix.$this->table:$alias).'`.';
+            if($this->issoftdel){
                 if(empty($where)){
-                    $where=' '.$this->field_deletetime.'>0 ';
+                    $where=" $tbname".$this->field_deletetime.'>0 ';
                 }else{
-                    $where='('.$where.') and '.$this->field_deletetime.'>0 ';
+                    $where='('.$where.") and $tbname".$this->field_deletetime.'>0 ';
                 }
 
             }else {
 
                 if (empty($where)) {
-                    $where = ' (' . $this->field_deletetime . ' IS NULL or ' . $this->field_deletetime . ' <=0 or ' . $this->field_deletetime . '=\'\')';
+                    $where = " ($tbname" . $this->field_deletetime . " IS NULL or $tbname" . $this->field_deletetime . " <=0 or $tbname" . $this->field_deletetime . '=\'\')';
                 } else {
-                    $where = '(' . $where . ') and (' . $this->field_deletetime . ' IS NULL or ' . $this->field_deletetime . ' <=0 or ' . $this->field_deletetime . '=\'\')';
+                    $where = '(' . $where . ") and ($tbname" . $this->field_deletetime . " IS NULL or $tbname" . $this->field_deletetime . " <=0 or $tbname" . $this->field_deletetime . '=\'\')';
                 }
 
             }
@@ -232,50 +189,40 @@ class model{
 
     }
 
-    public function find($where,$onlysoftdel=false){
-        $where = $this->softdelwhere($where,$onlysoftdel);
 
-        $re = $this->db->getRow('select * from '.$this->table_prefix.$this->table.' where '.$where);
-        $res=[$re];
-        $this->get_autofield($res);
-        $this->data = $res[0];
+    public function find(){
+        $data = parent::find();
+        $this->get_autofield($data);
+        $this->data = $data;
         $this->pager=null;
-        return $this->data;
+        return $data;
     }
 
-    public function get($value,$onlysoftdel=false){
-
-        $where="$this->key = $value";
-        $where = $this->softdelwhere($where,$onlysoftdel);
-
-        $re = $this->db->getRow('select * from '.$this->table_prefix.$this->table.' where '.$where);
-        $res=[$re];
-        $this->get_autofield($res);
-        $this->data = $res[0];
+    public function get($id=''){
+        $data=parent::get($id);
+        $this->get_autofield($data);
+        $this->data =$data;
         $this->pager=null;
-        return $this->data;
+        return $data;
     }
 
     /*
      * 根据某字段获取数据
      */
-    private function getby($field,$where='',$ord='',$page=0,$onlysoftdel=false,$pname='page'){
-        //路由中注册pagetag
-        route::reg_pagetag($pname);
+    private function getby($field)
+    {
 
-        $where=$this->softdelwhere($where,$onlysoftdel);
-        if($page==0)
-            $re = $this->db->select($this->table, $where, $field,$ord);
-        else
-            $re = $this->page($where, $ord, $field,$onlysoftdel, $pname);
-
+        $re = $this->all();
 
         $this->get_autofield($re);
 
-        if(count($re)==0)
+        if (!is_array($re))
+            return '';
+
+        if (count($re) == 0)
             return null;
 
-        else if(count($re)==1)
+        else if (count($re) == 1)
             return $re[0][$field];
 
         else {
@@ -297,18 +244,8 @@ class model{
             $re = [];
             if($argcount<1)
                 $re = $this->getby($field);
-            else if($argcount==1)
-                $re = $this->getby($field,$arguments[0]);
-            else if($argcount==2)
-                $re = $this->getby($field,$arguments[0],$arguments[1]);
-            else if($argcount==3)
-                $re = $this->getby($field,$arguments[0],$arguments[1],$arguments[2]);
-            else if($argcount==4)
-                $re = $this->getby($field,$arguments[0],$arguments[1],$arguments[2],$arguments[3]);
-            else if($argcount==5)
-                $re = $this->getby($field,$arguments[0],$arguments[1],$arguments[2],$arguments[3],$arguments[4]);
             else
-                throw new sysExcption($name.'方法参数数量不正确。');
+                $re = call_user_func_array([$this,'getby'],[$field]);
 
             return $re;
         }
@@ -333,7 +270,10 @@ class model{
             foreach ($line as $k=>$v) {
                 $timeformat = config('db.timeformat');
                 if(!empty($timeformat)&&($k==$this->field_createtime||$k==$this->field_deletetime||$k==$this->field_updatetime)){
-                    $values[$i][$k]=date($timeformat,$values[$i][$k]);
+                    if(empty($values[$i][$k]))
+                        $values[$i][$k]='';
+                    else
+                        $values[$i][$k]=date($timeformat,$values[$i][$k]);
                 }elseif (method_exists($this, 'get_' .$k)){
                     //自动数据处理
                     $mname = 'get_'.$k;
@@ -362,29 +302,6 @@ class model{
 
     }
 
-    /*
-     * 左右内连接 获取数据
-     * $table 表
-     * $fk 表的外键
-     * $type 左右内
-     * $where 条件语句
-     * $fields 要select的字段
-     * $join_field 如果为空则使用本表主键连接
-     * $order 排序
-     *
-     * @return 返回连接后的数据
-     */
-    public function join($table,$fk,$type='left',$where='1=1',$fields='*',$join_field='',$order=''){
-
-        $tbc=$this->table_prefix.$this->table;
-        $tbj= $this->table_prefix.$table;
-
-        $sql="select $fields from $tbc $type join $tbj on $tbj.".(empty($join_field)?$this->key:$join_field).'='.$tbc.'.'.$fk.' where'.$where.(empty($order)?'':' order by '.$order);
-        $result = $this->db->getAll($sql);
-        if(count($result)==1)
-            return $result[0];
-        return $result;
-    }
 
     public function __get($name)
     {
@@ -393,18 +310,26 @@ class model{
         if($name=='data')
             return $this->data;
         if($name=='key')
-            return $this->key;
+            return empty($this->key)?$this->db->getKeyFiled($this->table):$this->key;
         if($name=='table')
             return $this->table;
 
-        //$model=model($name);
-        //return $model;
     }
 
     public function __set($name, $value)
     {
         if($name=='data'){
             $this->data=$value;
+        }elseif ($name=='validate_rule'){
+            $this->insert_validata=$value;
+            $this->update_validata=$value;
+        }elseif ($name=='validate_msg'){
+            $this->insert_message_validata=$value;
+            $this->update_message_validata=$value;
+        }elseif ($name=='autotimespan'){
+            $this->autotimespan = $value;
+        }elseif ($name='softdel'){
+            $this->softdel=$value;
         }
     }
 
@@ -494,6 +419,37 @@ class model{
         return true;
     }
 
+    /**
+     * 保存数据 如果有条件，则根据条件否则根据主键 如果有主键则更新，没有则新增
+     * @param $data
+     * @return bool|int|mixed
+     */
+    public function save($data){
+
+        $where = $this->where;
+        if(!empty($where)){
+
+            $result = $this->select();
+            if(empty($result)){
+                return $this->insert($data);
+            }else{
+                $eff=$this->where($where)->update($data);
+                if($eff)
+                    return $data[$this->key];
+                else
+                    return false;
+            }
+
+        }else {
+
+            if (empty($data[$this->key])) {
+                return $this->insert($data);
+            } else {
+                return $this->update($data);
+            }
+
+        }
+    }
 
     public function __toString()
     {

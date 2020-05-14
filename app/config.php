@@ -6,6 +6,7 @@ return [
     'debug'=>true,
     'logger'=>true,
     'pagesize'=>5,
+    'format_suffix'=>'htm',
     'validata_error_page'=>'message/validataError.php',
     'success_page'=>'message/sysSuccess.php',
     'error_page'=>'message/sysError.php',
@@ -15,13 +16,15 @@ return [
         'db_host' => 'localhost',
         'db_port' => '3306',
         'db_username' => 'root',
-        'db_password' => '',
-        'db_name' => '',
-        'table_prefix'=>'',
+        'db_password' => 'root',
+        'db_name' => 'heecms',
+        'table_prefix'=>'heecms_',
         'charset'=>'utf8',
         'timeformat'=>'Y-m-d H:i:s',
         'dateformat'=>'Y-m-d',
+
     ],
+
     'pagination'=>[
       'class'=>'pagination',
         'item_class'=>'page-item',

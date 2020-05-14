@@ -144,14 +144,15 @@ class pdo implements databaseInterface {
             $str.="`$key`='$v',";
         }
         $str=rtrim($str,',');
+
+        $condition = '';
         if(is_array($where)){
-            foreach ($where as $key => $val) {
-                if(is_array($val)){
-                    $condition = '`'.$key.'` in ('.implode(',', $val) .')';
-                } else {
-                    $condition = '`'.$key. '`=' .$val;
-                }
+            $arr = $where;
+            $relation = 'and';
+            foreach ($arr as $k=>$v){
+                $condition.=" `$k`='$v'  $relation ";
             }
+            $condition = substr($condition,0,strlen($condition)-4);
         } else {
             $condition = $where;
         }
@@ -170,17 +171,18 @@ class pdo implements databaseInterface {
     public function select($table, $where, $fields = '*', $order = '', $skip = 0, $limit = 0)
     {
 
+        $condition = '';
         if(is_array($where)){
-            foreach ($where as $key => $val) {
-                if (is_numeric($val)) {
-                    $condition = $key.'='.$val;
-                }else{
-                    $condition = $key.'=\"'.$val.'\"';
-                }
+            $arr = $where;
+            $relation = 'and';
+            foreach ($arr as $k=>$v){
+                $condition.=" `$k`='$v'  $relation ";
             }
+            $condition = substr($condition,0,strlen($condition)-4);
         } else {
             $condition = $where;
         }
+
         if (!empty($order)) {
             $order = " order by ".$order;
         }
@@ -277,21 +279,21 @@ class pdo implements databaseInterface {
     {
 
         $result = $this->query($sql);
-        $list = $this->fetchAssoc($result);
+        $list = $this->fetch($result);
 
         return $list;
         // TODO: Implement getAll() method.
     }
     public function delete($table, $where)
     {
-        if (is_array($where)) {
-            foreach ($where as $key => $val) {
-                if (is_array($val)) {
-                    $condition = $key . ' in (' . implode(',', $val) . ')';
-                } else {
-                    $condition = $key . '=' . $val;
-                }
+        $condition = '';
+        if(is_array($where)){
+            $arr = $where;
+            $relation = 'and';
+            foreach ($arr as $k=>$v){
+                $condition.=" `$k`='$v'  $relation ";
             }
+            $condition = substr($condition,0,strlen($condition)-4);
         } else {
             $condition = $where;
         }
@@ -390,7 +392,7 @@ class pdo implements databaseInterface {
 
     }
 
-    private function query($queryText) {
+    public function query($queryText) {
 
         if ($this->conn) {
 
@@ -841,7 +843,7 @@ class pdo implements databaseInterface {
 
             if ($this->adapter == "mysql") {
 
-                return $this->query("DESCRIBE `" . $table . "`");
+                return $this->query("show full columns from `" . $table . "`");
 
             } else if ($this->adapter == "sqlite") {
 

@@ -4,17 +4,10 @@ use heephp\sysExcption;
 
 class controller{
 
-    //protected $_app='';
-    //protected $_controller='';
-    //protected $_method='';//当前url调用的方法名
     protected $_pagevar = array();
 
-    public function  __construct(/*$app,$controller,$method*/)
+    public function  __construct()
     {
-        /*$this->_app=$app;
-        $this->_controller=$controller;
-        $this->_method=$method;
-*/
         aop('controller_init');
 
     }
@@ -27,24 +20,40 @@ class controller{
         $viewpage=empty($viewpage)?METHOD:$viewpage;
         $viewPagePath = '';
         $otherdir = strpos($viewpage,'/')>-1;
-        if(APPS) {
+
+        //判断是否是否使用独立目录
+        $skindir = config('skin_dir');
+        $skindir = empty($skindir)?'':($skindir.'/');
+
+        //判断是否使用皮肤
+        $skin = config('skin');
+        $skin = empty($skin)?'':($skin.'/');
+
+        if(!empty($skindir)){
+
+            //如果使用了指定目录
+            if($otherdir)
+                $viewPagePath = './../'.$skindir.$skin. $viewpage . '.php';
+            else
+                $viewPagePath = './../'.$skindir.$skin. CONTROLLER . '/' . $viewpage . '.php';
+
+        }else if(APPS) {
             //多应用
             if ($otherdir)
-                $viewPagePath = './../app/' . APP . '/view/' . $viewpage . '.php';
+                $viewPagePath = './../app/' . APP . '/view/' .$skin. $viewpage . '.php';
             else
-                $viewPagePath = './../app/' . APP . '/view/' . CONTROLLER . '/' . $viewpage . '.php';
+                $viewPagePath = './../app/' . APP . '/view/' .$skin. CONTROLLER . '/' . $viewpage . '.php';
         }else{
             //单应用
             if ($otherdir)
-                $viewPagePath = './../app/view/' . $viewpage . '.php';
+                $viewPagePath = './../app/view/' .$skin. $viewpage . '.php';
             else
-                $viewPagePath = './../app/view/'.CONTROLLER.'/'.$viewpage.'.php';
+                $viewPagePath = './../app/view/'.CONTROLLER.'/'.$skin.$viewpage.'.php';
         }
         if(!is_file($viewPagePath)){
             throw new sysExcption( '模板文件'.$viewPagePath.'不存在！');
             exit;
         }
-        //print_r($this->_pagevar);
         //取出变量
         foreach ($this->_pagevar as $k=>$v){
             foreach ($v as $a=>$b){

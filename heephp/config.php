@@ -2,15 +2,33 @@
 namespace heephp;
 class config{
 
-    private static $config=array();
+    private static $config=[];
 
     private function __construct()
     {
 
+        $sys_config = [];
         if(is_file('./../app/config.php'))
-            config::$config = require './../app/config.php';
+            $sys_config = require './../app/config.php';
 
-        aop('config_init');
+        //读取应用中的单独配置
+        if(defined('APP')) {
+            if (is_file('./../app/' . APP . '/config.php')) {
+                $app_config = require './../app/' . APP . '/config.php';
+                foreach ($app_config as $k=>$v){
+                    if(is_array($v)){
+                        $sys_config[$k] = array_merge($sys_config[$k], $app_config[$k]);
+                    }else{
+                        $sys_config[$k] = $v;
+                    }
+                }
+
+            }
+        }
+
+        config::$config = $sys_config;
+
+        aop('config_init',config::$config);
     }
 
     private function _get(){

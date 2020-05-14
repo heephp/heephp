@@ -18,20 +18,21 @@ class validata{
 
     public function int($min=0,$max=0){
         if($min==0&&$max==0)
-            return is_int($this->data);
+            return is_numeric($this->data);
         else {
             if($max==0){
                 $max=PHP_INT_MAX;
             }
-            return is_int($this->data) && $this->data >= $min && $this->data <= $max;
+            return is_numeric($this->data) && $this->data >= $min && $this->data <= $max;
         }
     }
 
     public function double($wei=0){
+        $d=$this->data;
         if($wei==0)
-            return is_double($this->data);
+            return is_float($d);
 
-        return is_double($this->data)&&strlen(strstr($this->data,'.'))==$wei+1;
+        return is_float(floatval($d))&&strlen(strstr($d,'.'))==$wei+1;
     }
 
     public function alphaNumDashChinese($min=1,$max=0){
