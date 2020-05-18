@@ -720,6 +720,10 @@ function widget($path,$parm)
     }
 }
 
+ function json($data){
+    return json_encode($data);
+}
+
 spl_autoload_register(function ($class_name) {
 
     //\heephp\logger::warn('自动加载类：' . $class_name);
