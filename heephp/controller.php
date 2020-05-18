@@ -69,6 +69,15 @@ class controller{
 
         $content = ob_get_contents();
         ob_end_clean();
+
+        //html字符替换
+        $html_replace = config('html_replace');
+        if(is_array($html_replace)&&count($html_replace)>0) {
+            foreach ($html_replace as $k => $v) {
+                $content = str_replace($k, $v, $content);
+            }
+        }
+
         return $content;
     }
 
@@ -87,7 +96,7 @@ class controller{
         fclose($fileinfo);
     }
 
-    public function rediect($path){
+    public function redirect($path){
         ob_start();
         header('Location:'.url($path));
         $content = ob_get_contents();
@@ -126,6 +135,17 @@ class controller{
         if($name=='pagevar'){
             return $this->_pagevar;
         }
+    }
+
+    public function __call($name, $arguments)
+    {
+        if(!method_exists($this,'Empty'))
+            if(config('debug'))
+                return '控制器：'.CONTROLLER.'方法：'.$name.' 不存在';
+            else
+                return '您访问的页面不存在！';
+        else
+            return $this->empty();
     }
 
 
