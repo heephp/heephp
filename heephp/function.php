@@ -40,7 +40,7 @@ function request($name, $value = '')
             if (empty($value))
                 return $_COOKIE[$var];
             else {
-                $_COOKIE[$var] = $value;
+                setcookie($var, $value, time()+60*60*24*30);
                 return $_COOKIE[$var];
             }
         }

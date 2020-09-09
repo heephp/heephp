@@ -331,11 +331,14 @@ class orm
 
     public function join($type, $join, $relation = '')
     {
+        if(!empty($this->join))
+            $this->join = '('.$this->join.')';
+
         if (is_callable($join)) {
-            $this->join = $join(new orm());
+            $this->join .= $join(new orm());
         } else {
             $table = config('db.table_prefix') . $join;
-            $this->join = "$type join $table on $relation";
+            $this->join .= "$type join $table on $relation";
         }
         return $this;
     }
