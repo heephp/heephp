@@ -128,7 +128,7 @@ class model extends orm {
         foreach (PARMS as $item) {
             if(($item&($pname.'_'))==($pname.'_')){
                 $item = explode('_',$item);
-                $page = $item[1];
+                $page = $item[count($item)-1];
             }else
                 $parms[]=$item;
         }
