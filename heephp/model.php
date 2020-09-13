@@ -135,6 +135,7 @@ class model extends orm {
 
         $re=[];
         $count=$this->count('*','c')->value('c');
+        $count = empty($count)?0:$count;
         $re['count'] = $count;
         $re['pagesize']=$pagesize;
         $re['page']=$page;
