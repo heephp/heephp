@@ -735,8 +735,8 @@ spl_autoload_register(function ($class_name) {
         include_once($file) ;
         return;
     } else {
-        foreach_dir('./../plugin/', function ($val, $path) use ($class_name) {
-            $file = './../plugin/' . $val . '/' . $class_name . '.php';
+        foreach_dir('./../vendor/', function ($val, $path) use ($class_name) {
+            $file = './../vendor/' . $val . '/' . $class_name . '.php';
             if (is_file($file)) {
                 include_once($file) ;
                 return;
