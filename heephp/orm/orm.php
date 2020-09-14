@@ -2,6 +2,7 @@
 namespace heephp\orm;
 use heephp\config;
 use heephp\sysExcption;
+use heephp\trace;
 
 class orm
 {
@@ -9,15 +10,15 @@ class orm
     protected $table = '';
     protected $where = '';
     protected $order = '';
-    private $groupby = '';
-    private $having = '';
-    private $limit = 0;
-    private $join = '';
+    protected $groupby = '';
+    protected $having = '';
+    protected $limit = '';
+    protected $join = '';
     protected $alias = '';
     //private $model='';
-    private $sql = '';
+    protected $sql = '';
     protected $issoftdel = false;
-    private $cache=false;
+    protected $cache=false;
     protected $pageparm = 'page';
     protected $key='';
     protected $db;
@@ -313,9 +314,9 @@ class orm
         return $this;
     }
 
-    public function limit($int)
+    public function limit($str)
     {
-        $this->limit = $int;
+        $this->limit = $str;
         return $this;
     }
 
@@ -327,13 +328,11 @@ class orm
 
     public function cache($iscache=true){
         $this->cache=$iscache;
+        return $this;
     }
 
     public function join($type, $join, $relation = '')
     {
-        if(!empty($this->join))
-            $this->join = '('.$this->join.')';
-
         if (is_callable($join)) {
             $this->join .= $join(new orm());
         } else {
@@ -346,8 +345,8 @@ class orm
     public function all()
     {
 
-        return $this->get_data_from_cache('getAll');
-
+        $data = $this->get_data_from_cache('getAll');
+        return $data;
     }
 
     public function select(){
@@ -386,8 +385,10 @@ class orm
                 return $cvalue;
             }
 
-        } else
-            return $this->db->$method($sql);
+        } else {
+            $data = $this->db->$method($sql);
+            return $data;
+        }
     }
 
     public function value($field='')
@@ -487,6 +488,7 @@ class orm
         $groupby = empty($this->groupby)?'':'group by '.$this->groupby;
         $having = empty($this->having)||empty($this->groupby)?'':'having '.$this->having;
         $this->sql="select $fileds from $table $this->alias $this->join $where $groupby $order $having $limit";
+
         return $this->sql;
     }
 
@@ -524,7 +526,7 @@ class orm
         $this->where($where);
         $this->order($order);
         $this->field($fields);
-        $this->limit($page==1?0:(($page-1)*$pagesize).','.$pagesize);
+        $this->limit(($page<=1)?"0,$pagesize":((($page-1)*$pagesize).','.$pagesize));
         $data=$this->select();
 
         $re['show']=(new \heephp\bulider\pager())->bulider($page,$re['pagecount'],$parms,$pname);

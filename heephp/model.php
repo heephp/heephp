@@ -144,7 +144,7 @@ class model extends orm {
         $this->where($where);
         $this->order($order);
         $this->field($fields);
-        $this->limit($page==1?0:(($page-1)*$pagesize).','.$pagesize);
+        $this->limit(($page<=1)?"0,$pagesize":((($page-1)*$pagesize).','.$pagesize));
         $data=parent::select();
         $this->get_autofield($data);
 
@@ -307,14 +307,14 @@ class model extends orm {
         if(!is_array($values)||empty($values))
             return;
 
-            foreach ($values as $k=>$v) {
-                if($k==$this->field_createtime||$k==$this->field_deletetime||$k==$this->field_updatetime) {
-                    $values[$k]=time();
-                }elseif (method_exists($this, 'set_' .$k)){
-                    $mname = 'set_'.$k;
-                    $values[$k]=$this->$mname($values[$k]);
-                }
+        foreach ($values as $k=>$v) {
+            if($k==$this->field_createtime||$k==$this->field_deletetime||$k==$this->field_updatetime) {
+                $values[$k]=time();
+            }elseif (method_exists($this, 'set_' .$k)){
+                $mname = 'set_'.$k;
+                $values[$k]=$this->$mname($values[$k]);
             }
+        }
 
     }
 
