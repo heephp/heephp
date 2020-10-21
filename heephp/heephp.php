@@ -2,7 +2,7 @@
 namespace heephp;
 
 define('SOFTNAME','heephp');
-define('VERSION','3.0');
+define('VERSION','1.1');
 define('ROOT',dirname($_SERVER["DOCUMENT_ROOT"]));
 
 include_once 'config.php';
@@ -102,6 +102,8 @@ class heephp
         define('CONTROLLER', $controller);
         define('METHOD', $method);
         define('PARMS', $parms);
+
+        aop('app_loaded');
 
         //调用控制器
         $controllerINSTANCE = null;

@@ -393,9 +393,13 @@ function url($path, $parm = '',$havesuffix=true)
     return $result_url . $format_suffix;
 }
 
-function config($name = '')
+function config($name='',$value='')
 {
-    $config = \heephp\config::get($name);
+    if(empty($value)) {
+        $config = \heephp\config::get($name);
+    }else{
+        $config = \heephp\config::set($name,$value);
+    }
     return $config;
 }
 
