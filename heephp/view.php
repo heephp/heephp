@@ -11,16 +11,16 @@ class view
     {
     }
 
-    public static function create($basedir = '', $vars = [])
+    public static function create($basedir = '')
     {
         if (empty($basedir)) {
             $backtrace = debug_backtrace();
             view::$basedir = dirname($backtrace[0]['file']);
 
-            //throw new sysExcption('模板目录未指定');
-            //exit;
         } else
             view::$basedir = $basedir;
+
+        self::_getvar();
     }
 
     public static function setvars($vars)
@@ -59,6 +59,26 @@ class view
             $$k = $v;
         }
         include view::$layout;
+    }
+
+    private static function _getvar(){
+        $backtrace = debug_backtrace();
+        //获取引用页面的变量
+        for ($i = 0; $i < count($backtrace); $i++) {
+
+            if ($backtrace[$i]['function'] == 'fetch' && $backtrace[$i]['class'] == 'heephp\controller') {
+
+                $pagevars = $backtrace[$i]['object']->pagevar;
+                foreach ($pagevars as $item){
+                    $k = array_key_first($item);
+                    $v = array_values($item);
+                    view::$vars[$k]=$v[0];
+
+                }
+                break;
+            }
+
+        }
     }
 
     public static function part($name)
