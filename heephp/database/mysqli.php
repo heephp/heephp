@@ -134,7 +134,7 @@ class mysqli implements databaseInterface
 
         $result = $this->getRow($sql);
 
-        return $result[0];
+        return  $result[array_key_first($result)];
     }
 
     //获取一行记录,return array 一维数组

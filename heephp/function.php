@@ -30,7 +30,10 @@ function request($name, $value = '')
         } else if ($action == 'server' || $action == 'ser') {
             return $_SERVER[strtoupper($var)];
         } else if ($action == 'session') {
-            if (empty($value)) {
+            if(is_null($value)){
+                unset($_SESSION[$var]);
+            }
+            else if (empty($value)) {
                 return $_SESSION[$var];
             } else {
                 $_SESSION[$var] = $value;
@@ -725,7 +728,7 @@ function widget($path,$parm)
 }
 
  function json($data){
-    return json_encode($data);
+    return json_encode($data,JSON_UNESCAPED_UNICODE);
 }
 
 spl_autoload_register(function ($class_name) {
