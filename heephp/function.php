@@ -1,5 +1,6 @@
 <?php
 //url获取
+use heephp\heeimages;
 use heephp\logger;
 use heephp\orm;
 use heephp\route;
@@ -33,7 +34,7 @@ function request($name, $value = '')
             if(is_null($value)){
                 unset($_SESSION[$var]);
             }
-            else if (empty($value)) {
+            else if ($value==='') {
                 return $_SESSION[$var];
             } else {
                 $_SESSION[$var] = $value;
@@ -80,16 +81,46 @@ function cache($name = '', $value = '', $exp_time = 1)
     }
 }
 
+function mulit_uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5')
+{
+    $files = $_FILES[$fname];
+
+    $success = [];
+    $fails = [];
+    $len = count($files['name']);
+    for ($i = 0; $i < $len; $i++) {
+        $file = [
+            'name' => $files['name'][$i],
+            'type' => $files['type'][$i],
+            'tmp_name' => $files['tmp_name'][$i],
+            'source_name'=>$files['source_name'][$i],
+            'error' => $files['error'][$i],
+            'size' => $files['size'][$i]
+        ];
+        //调用文件上传函数
+        $res = uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype, $file);
+        if ($res) {
+            $success[] = $res;
+        } else {
+            $fails[] = $res;
+        }
+    }
+    return ['success' => $success, 'fail' => $fails];
+}
 /*
  * 上传文件
  */
-function uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5')
+function uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5',$file=[])
 {
+
+    if(empty($file))
+        $file = $_FILES[$fname];
+
     $info = [];
     // 允许上传的图片后缀
-    $temp = explode(".", $_FILES[$fname]["name"]);
+    $temp = explode(".", $file["name"]);
     $extension = end($temp);     // 获取文件后缀名
-    if ((($_FILES[$fname]["size"] / 1024) > $allowfilesize))  // 文件大小
+    if ((($file["size"] / 1024) > $allowfilesize))  // 文件大小
     {
         $info['error'] = "文件大小不符合要求,应该小于" . $allowfilesize . 'K';
         return $info;
@@ -100,19 +131,19 @@ function uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5
         return $info;
     }  //文件类型
 
-    if ($_FILES[$fname]["error"] > 0) {
-        $info['error'] = $_FILES[$fname]["error"];
+    if ($file["error"] > 0) {
+        $info['error'] = $file["error"];
         return $info;
     } else {
         //如果未选择要上传的文件
-        if (empty($_FILES[$fname]['name'])) {
+        if (empty($file['name'])) {
             return NULL;
         }
 
-        $info['source_name'] = $_FILES[$fname]["name"];
-        $info['type'] = $_FILES[$fname]["type"];
-        $info['size'] = ($_FILES[$fname]["size"] / 1024);
-        $info['temp_name'] = $_FILES[$fname]["tmp_name"];
+        $info['source_name'] = $file["name"];
+        $info['type'] = $file["type"];
+        $info['size'] = ($file["size"] / 1024);
+        $info['temp_name'] = $file["tmp_name"];
 
         // 判断当期目录下的 dir 目录是否存在该文件
         if (!is_dir($dir)) {
@@ -123,8 +154,8 @@ function uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5
             }
         }
         // 如果没有 dir 目录，你需要创建它，upload 目录权限为 777
-        if (file_exists($dir . $_FILES[$fname]["name"])) {
-            $info['error'] = $_FILES[$fname]["name"] . " 文件已经存在。 ";
+        if (file_exists($dir . $file["name"])) {
+            $info['error'] = $file["name"] . " 文件已经存在。 ";
             return $info;
         }
 
@@ -134,14 +165,14 @@ function uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5
         if ($nametype == 'timespan')
             $filename = time() . rand(1, 999999) . '.' . $extension;
         else if ($nametype == 'guid')
-            $filename = guid() . '.' . $extension;
+            $filename = str_replace(['-','{','}'],['','',''],guid()) . '.' . $extension;
 
         $info['name'] = $filename;
         $info['ext'] = $extension;
-        $info['fullpath'] = $dir . '\\' . $filename;
+        $info['fullpath'] = $dir  . $filename;
 
 
-        move_uploaded_file($_FILES[$fname]["tmp_name"], $dir . '\\' . $filename);
+        move_uploaded_file($file["tmp_name"], $dir  . $filename);
         return $info;
 
     }
@@ -186,6 +217,7 @@ function escapeString($content)
                 for ($i = 0; $i < count($value); $i++) {
                     //$content[$key][$i] = htmlencode(addslashes(trim($value[$i])));
                     $content[$key][$i] = htmlentities(addslashes(trim($value[$i])), ENT_QUOTES, "UTF-8");
+                    //$content[$key][$i] = trim($value[$i]);
                     if (preg_match($pattern, $content[$key][$i])) {
                         $content[$key][$i] = '';
                     }
@@ -195,6 +227,7 @@ function escapeString($content)
 
                 //$content[$key] = htmlencode(addslashes(trim($value)));
                 $content[$key] = htmlentities(addslashes(trim($value)), ENT_QUOTES, "UTF-8");
+                //$content[$key] = trim($value);
                 if (preg_match($pattern, $content[$key])) {
                     $content[$key] = '';
                 }
@@ -281,11 +314,11 @@ function randChar($len = 4, $format = 'all')
 function vercode($code = '', $fontsize = 20, $width = 80, $height = 25, $linecount = 12)
 {
     if (empty($code) || !isset($code)) {
-        return false;
+        $code = randChar();
     }
 
-    request('session.vcode', $code);
-
+    request('session.' . config('validata_code_session'), $code);
+/*
     $img = imagecreatetruecolor($width, $height);
     $black = imagecolorallocate($img, 0x00, 0x00, 0x00);
     $green = imagecolorallocate($img, 0x00, 0xFF, 0x00);
@@ -315,7 +348,11 @@ function vercode($code = '', $fontsize = 20, $width = 80, $height = 25, $linecou
     imagepng($img);  //保存图片
     imagedestroy($img);  //图像处理完成后，使用 imagedestroy() 指令销毁图像资源以释放内存，虽然该函数不是必须的，但使用它是一个好习惯。
 
-    //return $domain_name;
+    //return $domain_name;*/
+
+    $heeimg = new heeimages();
+    $heeimg->fromNew($width,$height,'darkblue')->text($code,['fontFile'=>ROOT.'/public/assets/fonts/arial.ttf','size'=>$fontsize,'color'=>'#fff'])->toScreen();
+    unset($heeimg);
 }
 
 /**
@@ -374,7 +411,10 @@ function url($path, $parm = '',$havesuffix=true)
         $result_url = $path;
     } else {
         if (APPS) {
-            $result_url = '/' . APP . '/' . CONTROLLER . '/' . $path;
+            if(count($allpath)==2&&!empty($allpath[1])){
+                $result_url = '/' . APP . '/' . $path;
+            }else
+                $result_url = '/' . APP . '/' . CONTROLLER . '/' . $path;
         } else
             $result_url = '/' . CONTROLLER . '/' . $path;
     }
@@ -678,6 +718,73 @@ function imgToBase64($img_file) {
     return $img_base64; //返回图片的base64
 }
 
+/**
+*功能：php完美实现下载远程图片保存到本地
+*参数：文件url,保存文件目录,保存文件名称，使用的下载方式
+*当保存文件名称为空时则使用远程文件原来的名称
+*/
+/*function getImageFormURI($url,$ext,$save_dir='',$type=0)
+{
+    if (trim($url) == '') {
+        return array('file_name' => '', 'save_path' => '', 'error' => 1);
+    }
+    if (trim($save_dir) == '') {
+        $save_dir = './';
+    }
+    //if (trim($filename) == '') {//保存文件名
+    //    $ext = strrchr($url, '.');
+    //    if ($ext != '.gif' && $ext != '.jpg'&& $ext != '.jpeg'&& $ext != '.png') {
+    //        return array('file_name' => '', 'save_path' => '', 'error' => 3);
+    //    }
+        $filename = md5($url).'.' . $ext;
+    //}
+    if (0 !== strrpos($save_dir, '/')) {
+        $save_dir .= '/';
+    }
+    //创建保存目录
+    if (!file_exists($save_dir) && !mkdir($save_dir, 0777, true)) {
+        return array('file_name' => '', 'save_path' => '', 'error' => 5);
+    }
+    //获取远程文件所采用的方法
+    if ($type) {
+        $ch = curl_init();
+        $timeout = 5;
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+        $img = curl_exec($ch);
+        curl_close($ch);
+    } else {
+        ob_start();
+        readfile($url);
+        $img = ob_get_contents();
+        ob_end_clean();
+    }
+    //$size=strlen($img);
+    //文件大小
+    $fp2 = @fopen($save_dir . $filename, 'a');
+    fwrite($fp2, $img);
+    fclose($fp2);
+    unset($img, $url);
+    return array('file_name' => $filename, 'save_path' => $save_dir . $filename, 'error' => 0);
+}*/
+
+function download($url,$ext, $path)
+{
+    $filename = md5($url).'.' . $ext;
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+    $file = curl_exec($ch);
+    curl_close($ch);
+   // $filename = pathinfo($url, PATHINFO_BASENAME);
+    $resource = fopen($path . $filename, 'a');
+    fwrite($resource, $file);
+    fclose($resource);
+    return $filename;
+}
 
 /**
  * 清空空格和换行
@@ -690,7 +797,7 @@ function space($str)
     return str_replace($search, $replace, $str);
 }
 
-function widget($path,$parm)
+function widget($path,$parm='')
 {
     $path = explode('/', $path);
     if (APPS) {
@@ -746,6 +853,17 @@ spl_autoload_register(function ($class_name) {
             $file = './../vendor/' . $val . '/' . $class_name . '.php';
             if (is_file($file)) {
                 include_once($file) ;
+
+               /* $dir = dirname($file);
+                //取类目录中所有文件
+                foreach_dir($dir,function ($v,$p){
+                    $f = $p.'/'.$v;
+                    if(is_file($f)){
+                        include_once($f) ;
+                    }
+                });*/
+
+
                 return;
             }
         });

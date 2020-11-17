@@ -3,9 +3,11 @@ namespace heephp;
 
 class sysExcption extends \Error
 {
-    public function __construct($msg,$code=0)
+    private $traces=[];
+    public function __construct($msg,$code=0,$traces=[])
     {
-        parent::__construct($msg,$code);
+        parent::__construct('错误代码：'.$code.'错误消息：'.$msg,is_int($code)?$code:404);
+        $this->traces = $traces;
         $this->show();
         exit;
     }
@@ -22,7 +24,7 @@ class sysExcption extends \Error
         $file = $this->getFile();
         $line = $this->getLine();
         $trace = $this->getTraceAsString();
-        $traces = $this->getTrace();
+        $traces = empty($this->traces)?$this->getTrace():$this->traces;
 
         include_once 'message/sysExcption.php';
     }

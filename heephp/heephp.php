@@ -119,9 +119,9 @@ class heephp
         try {
             $reinfo = call_user_func_array(array($controllerINSTANCE, $method), $parms);
         } catch (\Exception $e) {
-            throw new sysExcption($e->getMessage(), $e->getCode());
+            throw new sysExcption($e->getMessage(), $e->getCode(),$e->getTrace());
         } catch (\Error $e) {
-            throw new sysExcption($e->getMessage(), $e->getCode());
+            throw new sysExcption($e->getMessage(), $e->getCode(),$e->getTrace());
         }
 
         echo $reinfo;
