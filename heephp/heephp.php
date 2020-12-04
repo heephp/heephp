@@ -2,7 +2,7 @@
 namespace heephp;
 
 define('SOFTNAME','heephp');
-define('VERSION','1.1');
+define('VERSION','3.3');
 define('ROOT',dirname($_SERVER["DOCUMENT_ROOT"]));
 
 include_once 'config.php';
@@ -43,39 +43,39 @@ class heephp
 
         //匹配到跳转
         $mredirect = $route->match_redirect();
-        if($mredirect){
-            if(is_callable($mredirect)){
+        if ($mredirect) {
+            if (is_callable($mredirect)) {
                 $mredirect = $mredirect();
             }
-            $url=(($mredirect&'http://')=='http://')?$mredirect:(($mredirect&'https://')=='https://'?$mredirect:url($mredirect));
-            header('Location:'.$url);
+            $url = (($mredirect & 'http://') == 'http://') ? $mredirect : (($mredirect & 'https://') == 'https://' ? $mredirect : url($mredirect));
+            header('Location:' . $url);
             return;
         }
 
         //匹配到文件
         $mfile = $route->match_file();
-        if($mfile){
-            if(is_callable($mfile)){
+        if ($mfile) {
+            if (is_callable($mfile)) {
                 $mfile = $mfile();
             }
-            $fileinfo=fopen($mfile,'r');
+            $fileinfo = fopen($mfile, 'r');
             header("Content-Type:application/octet-stream");
             header("Accept-Ranges:bytes");
-            header("Accept-Length:".filesize($mfile));
-            header("Content-Disposition:attachment;filename=".$mfile);
-            echo fread($fileinfo,filesize($mfile));
+            header("Accept-Length:" . filesize($mfile));
+            header("Content-Disposition:attachment;filename=" . $mfile);
+            echo fread($fileinfo, filesize($mfile));
             fclose($fileinfo);
             return;
         }
 
         //匹配到域名
         $mdomain = $route->match_domain();
-        if($mdomain) {
+        if ($mdomain) {
             if (is_callable($mdomain)) {
                 echo $mdomain();
                 return;
-            }else{
-                $uinfo = explode('/',$mdomain);
+            } else {
+                $uinfo = explode('/', $mdomain);
                 $domain_uinfo = $route->get_detail_form_urlinfos($uinfo);
                 $this->mvc($domain_uinfo);
                 return;
@@ -90,7 +90,8 @@ class heephp
         aop('app_end');
     }
 
-    private function mvc($uinfo){
+    private function mvc($uinfo)
+    {
         //获取应用-控制器-方法名，参数信息
         $app = $uinfo['app'];
         $controller = $uinfo['controller'];
@@ -117,11 +118,18 @@ class heephp
         $controllerINSTANCE = new $controllerNAME();
 
         try {
-            $reinfo = call_user_func_array(array($controllerINSTANCE, $method), $parms);
-        } catch (\Exception $e) {
-            throw new sysExcption($e->getMessage(), $e->getCode(),$e->getTrace());
-        } catch (\Error $e) {
-            throw new sysExcption($e->getMessage(), $e->getCode(),$e->getTrace());
+
+            try {
+                $reinfo = call_user_func_array(array($controllerINSTANCE, $method), $parms);
+            } catch (\Exception $e) {
+                throw new sysExcption($e->getMessage(), $e->getCode(), $e->getTrace());
+            } catch (\Error $e) {
+                throw new sysExcption($e->getMessage(), $e->getCode(), $e->getTrace());
+            }
+
+        } catch (\heephp\sysExcption $e) {
+            echo $e->show();
+            exit;
         }
 
         echo $reinfo;

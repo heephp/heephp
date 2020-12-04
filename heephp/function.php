@@ -81,7 +81,7 @@ function cache($name = '', $value = '', $exp_time = 1)
     }
 }
 
-function mulit_uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5')
+function mulit_uploadfile($fname, $allowedExts, $allowfilesize, $dir='', $nametype = 'md5')
 {
     $files = $_FILES[$fname];
 
@@ -110,9 +110,12 @@ function mulit_uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype 
 /*
  * 上传文件
  */
-function uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5',$file=[])
+function uploadfile($fname, $allowedExts, $allowfilesize, $dir='', $nametype = 'md5',$file=[])
 {
-
+    if(empty($dir)){
+        $dir1 = '/uploads/' . date('Ymd') . '/';
+        $dir = ROOT . '/public' . $dir1;
+    }
     if(empty($file))
         $file = $_FILES[$fname];
 
@@ -167,6 +170,7 @@ function uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5
         else if ($nametype == 'guid')
             $filename = str_replace(['-','{','}'],['','',''],guid()) . '.' . $extension;
 
+        $info['dir'] = $dir1;
         $info['name'] = $filename;
         $info['ext'] = $extension;
         $info['fullpath'] = $dir  . $filename;
@@ -182,15 +186,15 @@ function uploadfile($fname, $allowedExts, $allowfilesize, $dir, $nametype = 'md5
 
 function guid()
 {
-    $charid = strtoupper(md5(uniqid(mt_rand(), true)));
+    $charid = strtolower(md5(uniqid(mt_rand(), true)));
     $hyphen = chr(45);// "-"
-    $uuid = chr(123)// "{"
+    $uuid = ''//chr(123)// "{"
         . substr($charid, 0, 8) . $hyphen
         . substr($charid, 8, 4) . $hyphen
         . substr($charid, 12, 4) . $hyphen
         . substr($charid, 16, 4) . $hyphen
-        . substr($charid, 20, 12)
-        . chr(125);// "}"
+        . substr($charid, 20, 12);
+       // . chr(125);// "}"
     return $uuid;
 }
 
@@ -838,6 +842,34 @@ function widget($path,$parm='')
     return json_encode($data,JSON_UNESCAPED_UNICODE);
 }
 
+/**
+ * 生成表单验证TOKEN
+ * @return string
+ */
+function crsf(){
+    $guid = guid();
+    $arr_crsf = request('session.crsf');
+    $arr_crsf[] = $guid;
+    request('session.crsf',$arr_crsf);
+    return $guid;
+}
+
+/**
+ * 验证表单提交TOKEN
+ */
+function check_crsf(){
+    $crsf = request('post.crsf');
+    $crsf = empty($crsf)?request('get.crsf'):$crsf;
+    if(empty($crsf))
+        return false;
+
+    $arr_crsf = request('session.crsf');
+    $exits = in_array($crsf,$arr_crsf);
+    if($exits)
+        array_diff($arr_crsf,[$crsf]);
+    return $exits;
+}
+
 spl_autoload_register(function ($class_name) {
 
     //\heephp\logger::warn('自动加载类：' . $class_name);
@@ -850,7 +882,7 @@ spl_autoload_register(function ($class_name) {
         return;
     } else {
         foreach_dir('./../vendor/', function ($val, $path) use ($class_name) {
-            $file = './../vendor/' . $val . '/' . $class_name . '.php';
+            $file = './../vendor/' . $val . '/' . $class_name . '.php';//echo $file.'<br>';
             if (is_file($file)) {
                 include_once($file) ;
 

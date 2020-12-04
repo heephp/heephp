@@ -66,9 +66,10 @@ class logger {
 
         //echo $log_file_path;exit;
         if(!is_dir($log_file_dir)){
-            if(!mkdir($log_file_dir,777,true)){
+            if(!mkdir($log_file_dir)){
                 return;
             }
+            chmod($log_file_dir,0777);
         }
 
         $log_level_name = logger::$LOG_LEVEL_NAMES[$level];
