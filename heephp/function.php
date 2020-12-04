@@ -322,40 +322,9 @@ function vercode($code = '', $fontsize = 20, $width = 80, $height = 25, $linecou
     }
 
     request('session.' . config('validata_code_session'), $code);
-/*
-    $img = imagecreatetruecolor($width, $height);
-    $black = imagecolorallocate($img, 0x00, 0x00, 0x00);
-    $green = imagecolorallocate($img, 0x00, 0xFF, 0x00);
-    $white = imagecolorallocate($img, 0xFF, 0xFF, 0xFF);
-    $red = imagecolorallocate($img, 0xFF, 0x00, 0x00);
-    $blue = imagecolorallocate($img, 0x00, 0x00, 0xFF);
-
-    $crand = rand(0, 4);
-    $bgcolor = $crand == 1 ? $white : ($crand == 2 ? $green : ($crand == 3 ? $black : ($crand == 4 ? $blue : $red)));
-    $fontcolor = $crand == 1 ? $red : ($crand == 2 ? $black : ($crand == 3 ? $white : ($crand == 4 ? $white : $white)));
-    $lincolor = $crand == 1 ? $white : ($crand == 2 ? $blue : ($crand == 3 ? $green : ($crand == 4 ? $black : $red)));
-    imagefill($img, 0, 0, $bgcolor);
-
-    imagettftext($img, $fontsize, rand(-10, 10), rand(0, $width / 3), rand(0, $height / 3) + 20, $fontcolor, ROOT . '/public/assets/fonts/arial.ttf', $code);
-    //imagestring($img, 5, rand(0,$width/3), rand(0,$height/3), $code, $fontcolor);
-    //加入噪点干扰
-    for ($i = 0; $i < $linecount; $i++) {
-        imagesetpixel($img, rand(0, $width), rand(0, $height), $black);  //imagesetpixel — 画一个单一像素，语法: bool imagesetpixel ( resource $image , int $x , int $y , int $color )
-        imagesetpixel($img, rand(0, $width), rand(0, $height), $green);
-        imagesetpixel($img, rand(0, $width), rand(0, $height), $white);
-        imagesetpixel($img, rand(0, $width), rand(0, $height), $red);
-        imageline($img, rand(0, $width), rand(0, $height), rand(0, $width), rand(0, $height), $lincolor);
-    }
-
-    //输出验证码
-    header("content-type: image/png");
-    imagepng($img);  //保存图片
-    imagedestroy($img);  //图像处理完成后，使用 imagedestroy() 指令销毁图像资源以释放内存，虽然该函数不是必须的，但使用它是一个好习惯。
-
-    //return $domain_name;*/
 
     $heeimg = new heeimages();
-    $heeimg->fromNew($width,$height,'darkblue')->text($code,['fontFile'=>ROOT.'/public/assets/fonts/arial.ttf','size'=>$fontsize,'color'=>'#fff'])->toScreen();
+    $heeimg->fromNew($width,$height,'darkblue')->text($code,['fontFile'=>ROOT.'/res/font/arial.ttf','size'=>$fontsize,'color'=>'#fff'])->toScreen();
     unset($heeimg);
 }
 
@@ -801,42 +770,6 @@ function space($str)
     return str_replace($search, $replace, $str);
 }
 
-function widget($path,$parm='')
-{
-    $path = explode('/', $path);
-    if (APPS) {
-        //如果以/开头
-        if ($path & '/' == '/' && count($path) > 3) {
-            $clsname = 'app/' . $path[1] . '/' . $path[2];
-            $cls = new $clsname();
-            echo $cls->$path[3]($parm);
-        } elseif ($path & '/' == '/' && count($path) > 2) {
-            $clsname = 'app/' . APP . '/' . $path[1];
-            $cls = new $clsname();
-            echo $cls->$path[2]($parm);
-        } elseif ($path & '/' == '/') {
-            $clsname = 'app/' . APP . '/' . CONTROLLER;
-            $cls = new $clsname();
-            echo $cls->$path[1]($parm);
-        } else {
-            $clsname = 'app/' . APP . '/' . CONTROLLER;
-            $cls = new $clsname();
-            echo $cls->$path[0]($parm);
-        }
-    } else {
-        //如果以/开头
-        if ($path & '/' == '/' && count($path) > 2) {
-            $clsname = 'app/' . $path[1] ;
-            $cls = new $clsname();
-            echo $cls->$path[2]($parm);
-
-        } elseif( count($path) > 2) {
-            $clsname = 'app/' .$path[0];
-            $cls = new $clsname();
-            echo $cls->$path[1]($parm);
-        }
-    }
-}
 
  function json($data){
     return json_encode($data,JSON_UNESCAPED_UNICODE);
