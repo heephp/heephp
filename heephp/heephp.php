@@ -5,7 +5,6 @@ define('SOFTNAME','heephp');
 define('VERSION','3.3');
 define('ROOT',dirname($_SERVER["DOCUMENT_ROOT"]));
 
-include_once 'config.php';
 include_once 'function.php';
 include_once 'controller.php';
 include_once 'validata.php';
@@ -16,7 +15,7 @@ include_once 'lang.php';
 include_once 'aop.php';
 include_once 'relation.php';
 include_once 'logger.php';
-
+include_once 'config.php';
 
 if(is_file('./../app/function.php'))
     include_once './../app/function.php';
@@ -30,7 +29,7 @@ class heephp
     public function __construct()
     {
         aop('app_init');
-
+        //加载语言包
         $l = new lang();
     }
 
@@ -103,6 +102,8 @@ class heephp
         define('CONTROLLER', $controller);
         define('METHOD', $method);
         define('PARMS', $parms);
+
+
 
         aop('app_loaded');
 

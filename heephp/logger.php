@@ -66,7 +66,7 @@ class logger {
 
         //echo $log_file_path;exit;
         if(!is_dir($log_file_dir)){
-            if(!mkdir($log_file_dir)){
+            if(!mkdir($log_file_dir,0777 ,true)){
                 return;
             }
             chmod($log_file_dir,0777);

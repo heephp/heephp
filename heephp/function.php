@@ -249,6 +249,13 @@ function escapeString($content)
     return $content;
 }
 
+/**
+ * 删除有request增加的转义
+ * @param val $
+ */
+function reqhtml($val){
+    return stripslashes(html_entity_decode($val));
+}
 
 /**
  * 安全过滤函数
@@ -324,7 +331,7 @@ function vercode($code = '', $fontsize = 20, $width = 80, $height = 25, $linecou
     request('session.' . config('validata_code_session'), $code);
 
     $heeimg = new heeimages();
-    $heeimg->fromNew($width,$height,'darkblue')->text($code,['fontFile'=>ROOT.'/heephp/res/font/arial.ttf','size'=>$fontsize,'color'=>'#fff'])->toScreen();
+    $heeimg->fromNew($width,$height,'darkblue')->text($code,['fontFile'=>ROOT.'/res/font/arial.ttf','size'=>$fontsize,'color'=>'#fff'])->toScreen();
     unset($heeimg);
 }
 
@@ -770,6 +777,42 @@ function space($str)
     return str_replace($search, $replace, $str);
 }
 
+function widget($path,$parm='')
+{
+    $path = explode('/', $path);
+    if (APPS) {
+        //如果以/开头
+        if ($path & '/' == '/' && count($path) > 3) {
+            $clsname = 'app/' . $path[1] . '/' . $path[2];
+            $cls = new $clsname();
+            echo $cls->$path[3]($parm);
+        } elseif ($path & '/' == '/' && count($path) > 2) {
+            $clsname = 'app/' . APP . '/' . $path[1];
+            $cls = new $clsname();
+            echo $cls->$path[2]($parm);
+        } elseif ($path & '/' == '/') {
+            $clsname = 'app/' . APP . '/' . CONTROLLER;
+            $cls = new $clsname();
+            echo $cls->$path[1]($parm);
+        } else {
+            $clsname = 'app/' . APP . '/' . CONTROLLER;
+            $cls = new $clsname();
+            echo $cls->$path[0]($parm);
+        }
+    } else {
+        //如果以/开头
+        if ($path & '/' == '/' && count($path) > 2) {
+            $clsname = 'app/' . $path[1] ;
+            $cls = new $clsname();
+            echo $cls->$path[2]($parm);
+
+        } elseif( count($path) > 2) {
+            $clsname = 'app/' .$path[0];
+            $cls = new $clsname();
+            echo $cls->$path[1]($parm);
+        }
+    }
+}
 
  function json($data){
     return json_encode($data,JSON_UNESCAPED_UNICODE);
