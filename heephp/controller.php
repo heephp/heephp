@@ -98,9 +98,9 @@ class controller{
         fclose($fileinfo);
     }
 
-    public function redirect($path){
+    public function redirect($path,$parms=[]){
         ob_start();
-        header('Location:'.url($path));
+        header('Location:'.url($path,$parms));
         $content = ob_get_contents();
         ob_end_clean();
 

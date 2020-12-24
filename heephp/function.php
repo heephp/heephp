@@ -331,7 +331,7 @@ function vercode($code = '', $fontsize = 20, $width = 80, $height = 25, $linecou
     request('session.' . config('validata_code_session'), $code);
 
     $heeimg = new heeimages();
-    $heeimg->fromNew($width,$height,'darkblue')->text($code,['fontFile'=>ROOT.'/res/font/arial.ttf','size'=>$fontsize,'color'=>'#fff'])->toScreen();
+    $heeimg->fromNew($width,$height,'darkblue')->text($code,['fontFile'=>ROOT.'/heephp/res/font/arial.ttf','size'=>$fontsize,'color'=>'#fff'])->toScreen();
     unset($heeimg);
 }
 
