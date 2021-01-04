@@ -116,6 +116,8 @@ class model extends orm {
         $order=$this->order;
         $fields=empty($this->fields)?' * ':$this->fields;
         $pname=$this->pageparm;
+        //路由中注册pagetag
+        \heephp\route::create()->reg_pagetag(empty($pname)?'page':$pname);
 
         if(empty($where))
             $where='1=1';
@@ -123,15 +125,7 @@ class model extends orm {
             $where=$this->softdelwhere();
 
         $pagesize=config('pagesize')??20;
-        $page=1;
-        $parms=[];
-        foreach (PARMS as $item) {
-            if(($item&($pname.'_'))==($pname.'_')){
-                $item = explode('_',$item);
-                $page = $item[count($item)-1];
-            }else
-                $parms[]=$item;
-        }
+        $page=PAGE[$pname]??1;
 
         $re=[];
         $count=$this->count('*','c')->value('c');
@@ -148,7 +142,7 @@ class model extends orm {
         $data=parent::select();
         $this->get_autofield($data);
 
-        $re['show']=(new \heephp\bulider\pager())->bulider($page,$re['pagecount'],$parms,$pname);
+        $re['show']=(new \heephp\bulider\pager())->bulider($page,$re['pagecount'],PARMS,$pname);
 
         $this->pager = $re;
         $this->data = $data;
@@ -191,19 +185,19 @@ class model extends orm {
 
 
     public function find(){
-        $data = parent::find();
+        $data = [parent::find()];
         $this->get_autofield($data);
-        $this->data = $data;
+        $this->data = $data[0];
         $this->pager=null;
-        return $data;
+        return $data[0];
     }
 
     public function get($id=''){
-        $data=parent::get($id);
+        $data=[parent::get($id)];
         $this->get_autofield($data);
-        $this->data =$data;
+        $this->data =$data[0];
         $this->pager=null;
-        return $data;
+        return $data[0];
     }
 
     /**
@@ -285,6 +279,7 @@ class model extends orm {
             $line=$values[$i];
             foreach ($line as $k=>$v) {
                 $timeformat = config('db.timeformat');
+
                 if(!empty($timeformat)&&($k==$this->field_createtime||$k==$this->field_deletetime||$k==$this->field_updatetime)){
                     if(empty($values[$i][$k]))
                         $values[$i][$k]='';
@@ -292,6 +287,7 @@ class model extends orm {
                         $values[$i][$k]=date($timeformat,$values[$i][$k]);
                 }elseif (method_exists($this, 'get_' .$k)){
                     //自动数据处理
+
                     $mname = 'get_'.$k;
                     $values[$i][$k]=$this->$mname($values[$i][$k]);
 
@@ -299,6 +295,8 @@ class model extends orm {
             }
 
         }
+
+
     }
 
     /*将数据结果的值  自动转换字段的值*/
@@ -316,6 +314,42 @@ class model extends orm {
                 }
             }
 
+    }
+
+    /**
+     * 设置值 跳过自动字段
+     * @param $filed
+     * @param $value
+     */
+    public function setField($filed,$value)
+    {
+        return $this->db->update($this->table, [$filed => $value], $this->where);
+    }
+
+    /**
+     * 加值
+     * @param $filed
+     * @param $value
+     */
+    public function setInc($filed,$value)
+    {
+        $item = $this->db->select($this->table, $this->where);
+        $item[$filed] = settype($item[$filed],gettype($value));
+        $item[$filed] = $item[$filed] + $value;
+        return $this->db->update($this->table, $item, $this->where);
+    }
+
+    /**
+     * 减去值
+     * @param $filed
+     * @param $value
+     */
+    public function setDec($filed,$value)
+    {
+        $item = $this->db->select($this->table, $this->where);
+        $item[$filed] = settype($item[$filed],gettype($value));
+        $item[$filed] = $item[$filed] - $value;
+        return $this->db->update($this->table, $item, $this->where);
     }
 
 

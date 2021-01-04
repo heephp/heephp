@@ -85,7 +85,7 @@ class controller{
 
     public function json($data){
         header("Content-Type: json/application; charset=UTF-8");
-        echo json_encode($data);
+        return json($data);
     }
 
     public function file($file,$filename){
@@ -100,7 +100,7 @@ class controller{
 
     public function redirect($path,$parms=[]){
         ob_start();
-        header('Location:'.url($path,$parms));
+        header('Location:'.url($path,$parms,false));
         $content = ob_get_contents();
         ob_end_clean();
 
