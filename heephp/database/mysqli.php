@@ -217,9 +217,10 @@ class mysqli implements databaseInterface
     {
 
         $sql = $this->bulid_insert_sql($table, $data);
-        $this->query($sql);
+        $istrue = $this->query($sql);
         //返回上一次增加操做产生ID值
-        return $this->getInsertid();
+        $lastid = $this->getInsertid();
+        return empty($lastid)?$istrue:$lastid;
     }
 
     private function bulid_insert_sql($table, $data)
@@ -334,6 +335,20 @@ class mysqli implements databaseInterface
         //修改SQL语句
         $sql = "update `$this->table_prefix$table` set $str where $condition $limit";
         return $sql;
+    }
+
+    public static function BEGINTRAN(){
+        self::$link->autocommit(false);
+    }
+
+    public static function COMMIT(){
+        if (!self::$link->errno) {
+            self::$link->commit(); //提交事务
+            return true;
+        } else {
+            self::$link->rollback(); //失败回滚
+            return false;
+        }
     }
 
 }
