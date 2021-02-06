@@ -91,12 +91,24 @@ class heephp
 
     private function mvc($uinfo)
     {
-        //获取应用-控制器-方法名，参数信息
-        $app = $uinfo['app'];
-        $controller = $uinfo['controller'];
-        $method = $uinfo['method'];
-        $parms = $uinfo['parms'];
-        $page = $uinfo['page'];
+        //判断是否是控制台运行
+        $iscli = ( php_sapi_name() == 'cli' );
+        if($iscli){
+            $app = config('default_app');
+            $controller = config('command_controller');
+            $method='index';
+            $parms = request('server.argv');
+            $page = 0;
+
+        }else {
+            //获取应用-控制器-方法名，参数信息
+            $app = $uinfo['app'];
+            $controller = $uinfo['controller'];
+            $method = $uinfo['method'];
+            $parms = $uinfo['parms'];
+            $page = $uinfo['page'];
+
+        }
         //urlpaser($app, $controller, $method, $parms);
 
         define('APP', $app);
@@ -104,6 +116,13 @@ class heephp
         define('METHOD', $method);
         define('PARMS', $parms);
         define('PAGE',$page);
+
+        //检查是否控制台访问的控制器
+        if($controller==config('command_controller')&&!$iscli){
+            $ex =  new sysExcption($controller.'控制器仅支持通过控制台访问');
+            echo $ex->show();
+            exit;
+        }
 
         aop('app_loaded');
 

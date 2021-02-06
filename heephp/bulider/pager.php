@@ -7,14 +7,14 @@ class pager{
 
     }
 
-    public function bulider($page,$pagecount,$urlparms,$pname){
+    public function bulider($page,$pagecount,$urlparms,$pname,$other=''){
         //构造url
         $path='/'.APP.'/'.CONTROLLER.'/'.METHOD;
         //$url = url($path,array_merge($parms,[$pname.'_'.$page]));
-        $firstpage=url($path,array_merge($urlparms,[$pname.'_1']));
-        $prvpage=url($path,array_merge($urlparms,[$pname.'_'.($page-1)]));
-        $nextpage=url($path,array_merge($urlparms,[$pname.'_'.($page+1)]));
-        $endpage=url($path,array_merge($urlparms,[$pname.'_'.$pagecount]));
+        $firstpage=url($path,array_merge($urlparms,[$pname.'_1'])).'?'.$other;
+        $prvpage=url($path,array_merge($urlparms,[$pname.'_'.($page-1)])).'?'.$other;
+        $nextpage=url($path,array_merge($urlparms,[$pname.'_'.($page+1)])).'?'.$other;
+        $endpage=url($path,array_merge($urlparms,[$pname.'_'.$pagecount])).'?'.$other;
 
 
 

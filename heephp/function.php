@@ -29,7 +29,7 @@ function request($name, $value = '')
                 return inputfilter($posts);
             return inputfilter($posts[$var] ?? '');
         } else if ($action == 'server' || $action == 'ser') {
-            return $_SERVER[strtoupper($var)];
+            return $_SERVER[$var];
         } else if ($action == 'session') {
             if(is_null($value)){
                 unset($_SESSION[$var]);
@@ -383,7 +383,7 @@ function sendmail($to, $subject, $body, $attachment = '', $conf = [])
  * 生成URL路径
  * @path 路径
  */
-function url($path, $parm = '',$havesuffix=true)
+function url($path, $parm = '',$havesuffix=true,$domain='')
 {
 
     //清除多余字符
@@ -420,7 +420,7 @@ function url($path, $parm = '',$havesuffix=true)
     $format_suffix = $havesuffix ? config('format_suffix') : '';
     $format_suffix = (empty($format_suffix) ? '' : ('.' . $format_suffix));
 
-    return $result_url . $format_suffix;
+    return $domain.$result_url . $format_suffix;
 }
 
 function config($name='',$value='')

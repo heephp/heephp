@@ -3,6 +3,7 @@ return [
     'default_app'=>'index',
     'default_controller'=>'index',
     'default_method'=>'index',
+    'command_controller'=>'command',
     'debug'=>true,
     'logger'=>true,
     'pagesize'=>5,
