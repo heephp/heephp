@@ -92,15 +92,15 @@ class heephp
     private function mvc($uinfo)
     {
         //判断是否是控制台运行
-        $iscli = ( php_sapi_name() == 'cli' );
-        if($iscli){
+        $iscli = (php_sapi_name() == 'cli');
+        if ($iscli) {
             $app = config('default_app');
             $controller = config('command_controller');
-            $method='index';
+            $method = 'index';
             $parms = request('server.argv');
             $page = 0;
 
-        }else {
+        } else {
             //获取应用-控制器-方法名，参数信息
             $app = $uinfo['app'];
             $controller = $uinfo['controller'];
@@ -115,11 +115,11 @@ class heephp
         define('CONTROLLER', $controller);
         define('METHOD', $method);
         define('PARMS', $parms);
-        define('PAGE',$page);
+        define('PAGE', $page);
 
         //检查是否控制台访问的控制器
-        if($controller==config('command_controller')&&!$iscli){
-            $ex =  new sysExcption($controller.'控制器仅支持通过控制台访问');
+        if ($controller == config('command_controller') && !$iscli) {
+            $ex = new sysExcption($controller . '控制器仅支持通过控制台访问');
             echo $ex->show();
             exit;
         }
@@ -135,11 +135,15 @@ class heephp
         else
             $controllerNAME .= 'controller\\' . $controller;
 
-
         try {
 
             try {
                 $controllerINSTANCE = new $controllerNAME();
+            } catch (\Error $e) {
+                throw new sysExcption($e->getMessage(), 404, $e->getTrace());
+            }
+
+            try {
                 $reinfo = call_user_func_array(array($controllerINSTANCE, $method), $parms);
             } catch (\Exception $e) {
                 throw new sysExcption($e->getMessage(), $e->getCode(), $e->getTrace());

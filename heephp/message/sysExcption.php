@@ -19,6 +19,6 @@
     <?='文件：'.$t['file'].'    行：'.$t['line'].'   '.$t['class'].'\\'.$t['function'].'()'?><br>
 <?}?>
 <br><br>
-<a href="http://doc.heephp.com">帮助文档</a> <a href="http://bbs.heephp.com">在线论坛</a> <a href="http://www.heephp.com">联系我们</a> <a href="http://www.heephp.com">heephp</a>
+<a href="http://doc.heephp.com" target="_blank">帮助文档</a> <a href="https://heephp.gitee.io/heephp/" target="_blank">完全手册</a> <a href="https://www.heephp.com/index/contact.htm" target="_blank">联系我们</a> <a href="http://www.heephp.com" target="_blank">heephp</a>
 </body>
 </html>

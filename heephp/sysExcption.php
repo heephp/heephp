@@ -6,19 +6,14 @@ class sysExcption extends \Exception
     private $traces=[];
     public function __construct($msg,$code=0,$traces=[])
     {
-        parent::__construct('错误代码：'.$code.'错误消息：'.$msg,is_int($code)?$code:404);
+        parent::__construct($msg.'代码：'.$code,is_int($code)?$code:404);
         $this->traces = $traces;
-        //echo $this->show();
-        //exit;
-        //$this->show();
-        //echo $msg;
-        //exit;
+
     }
 
     public function show(){
         if(!config('debug')){
             return '页面出错~<br><br><a href="http://www.heephp.com" target="_blank">heephp</a>';
-            //return;
         }
 
         $msg = $this->message;
