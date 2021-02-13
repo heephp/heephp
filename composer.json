@@ -4,6 +4,7 @@
   "minimum-stability": "stable",
   "license": "GPL3.0",
   "version": "3.3.8",
+  "type": "project",
   "keywords": ["php", "php mvc", "mvc framework","php框架"],
   "authors": [
     {
