@@ -6,7 +6,7 @@ class sysExcption extends \Exception
     private $traces=[];
     public function __construct($msg,$code=0,$traces=[])
     {
-        parent::__construct($msg.'代码：'.$code,is_int($code)?$code:404);
+        parent::__construct($msg.' 代码：'.$code,is_int($code)?$code:404);
         $this->traces = $traces;
 
     }
