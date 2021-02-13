@@ -1,0 +1,14 @@
+{
+  "name": "lvstech/heephp",
+  "description": "heephp mvc 开发框架，基于PHP7.3+",
+  "minimum-stability": "stable",
+  "license": "GPL3.0",
+  "authors": [
+    {
+      "name": "上海绿松信息技术有限公司",
+      "email": "lvstech@foxmail.com"
+    }
+  ],
+  "require": {
+  }
+}
