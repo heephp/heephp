@@ -11,5 +11,8 @@
       "email": "lvstech@foxmail.com",
       "homepage": "https://www.heephp.com/"
     }
-  ]
+  ],
+  "require": {
+    "php": ">=7.3"
+  }
 }
