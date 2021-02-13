@@ -9,7 +9,7 @@
 
 <h2><?=$msg?></h2>
 
-<h5><?=APPS?'<b>应用:</b>'.APP:''?>  <b>         控制器:</b><?=CONTROLLER?><b>        方法:</b><?=METHOD?><b>     参数:</b><? var_dump(PARMS)?></h5>
+<h5><?=APPS?'<b>应用:</b>'.APP:''?>  <b>         控制器:</b><?=CONTROLLER?><b>        方法:</b><?=METHOD?><b>     参数:</b><? var_dump(PARMS)?>   分页:<? var_dump(PAGE)?> </h5>
 
 文件：<?=$file?><Br>
 所在行：<?=$line?><bR><Br>
