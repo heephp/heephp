@@ -135,11 +135,11 @@ class heephp
         else
             $controllerNAME .= 'controller\\' . $controller;
 
-        $controllerINSTANCE = new $controllerNAME();
 
         try {
 
             try {
+                $controllerINSTANCE = new $controllerNAME();
                 $reinfo = call_user_func_array(array($controllerINSTANCE, $method), $parms);
             } catch (\Exception $e) {
                 throw new sysExcption($e->getMessage(), $e->getCode(), $e->getTrace());
