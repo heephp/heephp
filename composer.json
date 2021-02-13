@@ -6,7 +6,8 @@
   "authors": [
     {
       "name": "上海绿松信息技术有限公司",
-      "email": "lvstech@foxmail.com"
+      "email": "lvstech@foxmail.com",
+      "homepage": "https://www.heephp.com/"
     }
   ],
   "require": {
