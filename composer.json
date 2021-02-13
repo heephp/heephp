@@ -3,7 +3,7 @@
   "description": "heephp mvc 开发框架，基于PHP7.3+",
   "minimum-stability": "stable",
   "license": "GPL3.0",
-  "version": "3.3.8",
+  "version": "3.38.0",
   "type": "project",
   "keywords": ["php", "php mvc", "mvc framework","php框架"],
   "authors": [
